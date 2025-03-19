@@ -50,7 +50,7 @@ def recommend_by_terms(req: RecommendationRequest):
     input_vector = vectorizer.transform([req.query])
     similarities = cosine_similarity(input_vector, tfidf_matrix).flatten()
     top_indices = similarities.argsort()[-req.top_n:][::-1]
-    results = df.iloc[top_indices][['title', 'artist', 'tags', 'link', 'rank']].copy()
+    results = df.iloc[top_indices][['title', 'artist', 'tags', 'link', 'rank', 'thumbnail_url']].copy()
     results['tags'] = results['tags'].apply(lambda x: [str(tag) for tag in x])
     results = results.to_dict(orient='records')
     logging.info(f"Returning {len(results)} results for terms query.")
@@ -79,7 +79,7 @@ def recommend_by_title(req: RecommendationRequest):
     top_indices = score.argsort()[-(req.top_n + 1):][::-1]
     recommended = df.iloc[top_indices]
     recommended = recommended[recommended['title'] != target_row['title']]
-    results = recommended[['title', 'artist', 'tags', 'link', 'rank']].copy()
+    results = recommended[['title', 'artist', 'tags', 'link', 'rank', 'thumbnail_url']].copy()
     results['tags'] = results['tags'].apply(lambda x: [str(tag) for tag in x])
     results = results.to_dict(orient='records')
     logging.info(f"Returning {len(results)} recommendations based on title: {closest_title[0]}")
@@ -91,7 +91,7 @@ def recommend_semantic(req: RecommendationRequest):
     query_embedding = model.encode([req.query])
     faiss.normalize_L2(query_embedding)
     distances, indices = faiss_index.search(query_embedding, req.top_n)
-    results = df.iloc[indices[0]][['title', 'artist', 'tags', 'link', 'rank']].copy()
+    results = df.iloc[indices[0]][['title', 'artist', 'tags', 'link', 'rank', 'thumbnail_url']].copy()
     results['tags'] = results['tags'].apply(lambda x: [str(tag) for tag in x])
     results = results.to_dict(orient='records')
     logging.info(f"Returning {len(results)} semantic recommendations.")
